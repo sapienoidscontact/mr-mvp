@@ -1,4 +1,138 @@
-# MR Tracker — Setup Guide
+# MR Tracker
+
+**An offline-first Progressive Web App for pharmaceutical medical
+representatives: GPS-stamped doctor visits, voice-noted call reports and sample
+tracking, logged from any phone with no signal — syncing to Google Sheets when
+the network returns, at $0/month.**
+
+> **This is a source-available portfolio repository.** You may read the code to
+> evaluate the author's work. You may not copy, run, reuse, or build on it.
+> See [LICENSE](LICENSE).
+
+---
+
+## Why it exists
+
+A medical representative makes 10–15 clinic visits a day, and the places
+prescriptions are actually written — hospital basements, small-town clinics,
+rural practices — are exactly the places with no usable mobile signal. Every
+commercial MR-reporting SaaS assumes an online device and fails there, so field
+teams fall back to filling in a day's visits from memory at 9pm. The data that
+reaches management is fiction.
+
+Three constraints follow, and they drove the whole design:
+
+| Constraint | Decision |
+| --- | --- |
+| **No signal at the point of work** | **Offline-first, not offline-tolerant.** The app is fully functional with no network; sync is a background concern. |
+| **Per-seat SaaS × 40 reps is unaffordable** | **$0/month.** Google Sheets as the backend — no server, no database bill. |
+| **No company-issued devices** | **PWA, not a native app.** Installs from a URL onto any Android or iOS phone. No app store, no MDM, no install friction. |
+
+GPS stamping and photo capture exist for the same reason the offline model does:
+they make a visit report verifiable rather than remembered.
+
+## Architecture
+
+```
+   Phone (Android / iOS) — installed as PWA
+   ┌────────────────────────────────────────┐
+   │  React 18 + Vite + Tailwind            │
+   │  ┌──────────────────────────────────┐  │
+   │  │ Local-first store                │  │
+   │  │ • visits queue                   │  │
+   │  │ • GPS lat/long/accuracy          │  │
+   │  │ • voice-to-text notes            │  │
+   │  │ • photos                         │  │
+   │  │ WORKS WITH ZERO CONNECTIVITY     │  │
+   │  └──────────────┬───────────────────┘  │
+   └─────────────────┼──────────────────────┘
+                     │ when network returns
+                     ▼
+         ┌───────────────────────────┐
+         │ Google Apps Script        │
+         │ backend/Code.gs           │
+         └───────────┬───────────────┘
+                     │
+        ┌────────────┴────────────┐
+        ▼                         ▼
+┌────────────────┐      ┌──────────────────┐
+│ Google Sheets  │      │  Google Drive    │
+│ MR_Visits      │      │  visit photos    │
+│ MR_Employees   │      │                  │
+│ Products       │      │                  │
+└────────────────┘      └──────────────────┘
+```
+
+The backend is a **Google Apps Script** (`backend/Code.gs`) — there is no server
+to run, patch or pay for. That is the whole reason the $0 figure is real rather
+than marketing.
+
+## Data model
+
+Three sheets, deliberately flat so a non-technical manager can read and filter
+them directly:
+
+**`MR_Visits`** — `visit_id`, `mr_id`, `mr_name`, `timestamp_iso`, `event_type`,
+`latitude`, `longitude`, `accuracy_m`, `doctor_name`, `doctor_degree`,
+`doctor_specialty`, `clinic_name`, `city`, `products_discussed`,
+`samples_given`, `order_value_inr`, `notes`, `day_session_id`,
+`photo_drive_link`
+
+**`MR_Employees`** — `mr_id`, `mr_name`, `pin_hash`, `territory`,
+`reporting_manager`, `joined_date`
+
+**`Products`** — `product_id`, `product_name`, `category`, `unit_price_inr`
+
+Note `pin_hash`: reps authenticate with a PIN, and it is **stored hashed**, not
+in plaintext, even in a Google Sheet.
+
+## What it is made of
+
+**Frontend** — React 18, Vite, Tailwind CSS, PostCSS
+**Delivery** — Progressive Web App (installable, offline-capable service worker)
+**Backend** — Google Apps Script (`backend/Code.gs`)
+**Storage** — Google Sheets (records) + Google Drive (photos)
+**Device APIs** — Geolocation, camera, speech-to-text
+**Hosting** — static; GitHub Pages or Netlify
+**Cost** — $0/month, entirely on free tiers
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the detailed design.
+
+## What is deliberately not in this repo
+
+`.env` (live Sheet IDs and deployment URLs), `node_modules/`, and build output.
+`.env.example` documents every required variable. No real visit, doctor or
+employee data is committed.
+
+## Related projects
+
+Part of the Pharma family:
+
+- [**pharma-ai-lab**](https://github.com/sapienoidscontact/pharma-ai-lab) — the local-first
+  Pharma AI Workspace desktop application (Base + Pro editions)
+- [**n8n-sample**](https://github.com/sapienoidscontact/n8n-sample) — 35 n8n
+  workflows automating the Pharma business cycle
+
+## Status
+
+Working PWA with a complete setup guide. The documentation below walks through
+Google Sheet creation, Apps Script deployment and hosting step by step — written
+for a non-technical operations manager, not a developer.
+
+## Licensing and third-party credits
+
+**Proprietary — All Rights Reserved.** See [LICENSE](LICENSE).
+
+Depends on third-party software and services under their own licences and terms,
+including React (MIT), Vite (MIT), Tailwind CSS (MIT), and the Google Sheets,
+Drive and Apps Script platforms. Those licences and terms cover those components
+only and grant no rights in this Work.
+
+Contact: **aidevloping@gmail.com**
+
+---
+
+## Detailed project documentation
 
 A **free, offline-first Progressive Web App** for pharmaceutical medical representatives.  
 Runs on any Android/iOS device, syncs to Google Sheets, costs $0/month.

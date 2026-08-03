@@ -7,3 +7,105 @@ build/
 *.log
 .DS_Store
 Thumbs.db
+
+# ============================================================
+# Public-repo hardening â€” added for source-only publication
+# Keeps secrets, large binaries, third-party redistributables,
+# generated data and private business material out of git.
+# ============================================================
+
+# --- Secrets & credentials ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+credentials*.json
+client_secret*.json
+service-account*.json
+service_account*.json
+token.json
+*.crt
+license-keys/
+
+# --- Virtual environments & dependencies ---
+.venv/
+venv/
+env/
+tf_env/
+node_modules/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Build output & installers ---
+dist/
+dist-*/
+build/
+out/
+release/
+*.exe
+*.dll
+*.so
+*.dylib
+*.msi
+*.pak
+*.bin
+*.dat
+*.spec.out
+win-unpacked/
+
+# --- Third-party binaries (NOT redistributable under this repo's license) ---
+ffmpeg*
+ffprobe*
+OllamaSetup*
+resources/win/
+**/resources/win/
+
+# --- ML model weights (too large for git; publish source, not artifacts) ---
+*.keras
+*.h5
+*.pt
+*.pth
+*.onnx
+*.pb
+*.tflite
+*.safetensors
+*.npy
+*.ckpt
+
+# --- Media & recordings ---
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.wav
+*.mp3
+*.flac
+
+# --- Databases & generated data ---
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.db.bak-*
+data/media/
+output/
+cache/
+
+# --- Logs & scratch ---
+*.log
+logs/
+*.tmp
+.DS_Store
+Thumbs.db
+desktop.ini
+

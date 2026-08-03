@@ -1,0 +1,83 @@
+PROPRIETARY SOFTWARE LICENSE — ALL RIGHTS RESERVED
+
+Copyright (c) 2025-2026 Sapienoids. All Rights Reserved.
+
+This software, its source code, documentation, design, architecture, system
+prompts, pipeline logic, data models, and user interface components (together,
+"the Work") are the exclusive intellectual property of the copyright holder.
+
+================================================================================
+WHAT YOU MAY DO
+================================================================================
+
+You are granted a limited, revocable, non-transferable, non-exclusive right to:
+
+  1. VIEW and READ the source code in this repository, in place, for the sole
+     purposes of technical evaluation, recruitment assessment, code review, or
+     professional due diligence relating to the author.
+
+That is the entire grant. It is a right to LOOK, and nothing more.
+
+================================================================================
+WHAT YOU MAY NOT DO
+================================================================================
+
+Without prior express WRITTEN permission from the copyright holder, you may NOT:
+
+  1. COPY, clone for reuse, reproduce, download for retention, or store the Work
+     or any part of it beyond the transient copies your browser or git client
+     creates while viewing it.
+  2. USE the Work, in whole or in part, in any personal, academic, internal,
+     commercial, or production context.
+  3. MODIFY, adapt, translate, refactor, or create derivative works from it.
+  4. DISTRIBUTE, publish, sublicense, sell, rent, lease, or otherwise transfer
+     the Work or any derivative of it to any third party.
+  5. DEPLOY, host, or operate the Work or any derivative as a service.
+  6. INCORPORATE any portion of the Work — including individual functions,
+     algorithms, prompts, schemas, or configuration — into any other codebase,
+     whether proprietary or open source.
+  7. TRAIN, fine-tune, evaluate, or otherwise use the Work as input to any
+     machine learning model, dataset, corpus, or AI system.
+  8. REMOVE, obscure, or alter any copyright, attribution, or license notice.
+  9. REVERSE ENGINEER any compiled or distributed artifact derived from the Work.
+
+The public visibility of this repository is a convenience extended to reviewers.
+It is NOT an offer of an open source license, NOT a dedication to the public
+domain, and NOT a waiver of any right. No open source license applies to this
+Work. Nothing here grants any patent, trademark, or trade secret right.
+
+================================================================================
+THIRD-PARTY COMPONENTS
+================================================================================
+
+This Work depends on third-party libraries and tools that remain the property of
+their respective authors and are governed by their own licenses. Those licenses
+apply only to those components and grant you NO right whatsoever in the Work
+itself. See the NOTICE file, where present, for details.
+
+Third-party binaries, installers, model weights, and media assets are
+deliberately NOT redistributed in this repository. Obtain them from their
+original sources under their original licenses.
+
+================================================================================
+NO WARRANTY
+================================================================================
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE
+WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+
+================================================================================
+ENFORCEMENT AND CONTACT
+================================================================================
+
+Unauthorized use constitutes copyright infringement and will be pursued to the
+full extent available under applicable law, including the Indian Copyright Act,
+1957, the United States Copyright Act (17 U.S.C.), and the Berne Convention.
+
+Commercial licensing, partnership, and permission inquiries are welcome:
+
+    Sapienoids — aidevloping@gmail.com

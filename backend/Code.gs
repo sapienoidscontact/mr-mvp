@@ -45,6 +45,11 @@
 var SHEET_ID = '1ukPMda-YZw7RvzIpLq-XAehOmmfkqGfbdOu21cjda78';
 var DRIVE_FOLDER_ID = '1Nymfju38BI7Y2LEhJ2nfTlErFU2T2A5P';
 
+// Optional shared secret for the employer dashboard (Pharma AI Workspace).
+// Leave '' to allow dashboard reads without a key; set a value and enter the
+// same value in the Workspace's Field Force settings to require it.
+var DASHBOARD_KEY = '';
+
 // Column order for MR_Visits sheet
 var VISIT_COLUMNS = [
   'visit_id', 'mr_id', 'mr_name', 'timestamp_iso', 'event_type',
@@ -61,6 +66,7 @@ function doGet(e) {
     if (action === 'validatePin')  return handleValidatePin(e);
     if (action === 'getProducts')  return handleGetProducts(e);
     if (action === 'getVisitsCSV') return handleGetVisitsCSV(e);
+    if (action === 'getDashboard') return handleGetDashboard(e);
     if (action === 'registerMR')   return handleRegisterMR(e.parameter);
     return jsonResponse({ error: 'Unknown action: ' + action });
   } catch (err) {
@@ -144,6 +150,15 @@ function handleSyncVisits(body) {
   var synced_ids  = [];
   var errors      = [];
 
+  // Write in THIS sheet's actual column order (falls back to canonical order
+  // when the header row is missing/unrecognisable).
+  var sheetCols = VISIT_COLUMNS;
+  if (sheet.getLastRow() >= 1 && sheet.getLastColumn() >= 1) {
+    var hdr = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+      .map(function(h) { return h.toString().toLowerCase().trim(); });
+    if (hdr.indexOf('visit_id') >= 0) sheetCols = hdr;
+  }
+
   events.forEach(function(event) {
     try {
       var vid = (event.visit_id || '').toString().trim();
@@ -160,8 +175,8 @@ function handleSyncVisits(body) {
       if (!event.timestamp_iso) { errors.push(vid + ': missing timestamp'); return; }
       if (!event.event_type)  { errors.push(vid + ': missing event_type');  return; }
 
-      // Build row in column order
-      var row = VISIT_COLUMNS.map(function(col) {
+      // Build row in the sheet's own column order
+      var row = sheetCols.map(function(col) {
         var val = event[col];
         if (val === null || val === undefined) return '';
         return val;
@@ -248,12 +263,90 @@ function handleGetVisitsCSV(e) {
     .setMimeType(ContentService.MimeType.CSV);
 }
 
+/**
+ * Employer dashboard feed for Pharma AI Workspace.
+ * GET ?action=getDashboard&days=7[&key=...]
+ * Returns visits within the period plus the employee roster (pin_hash omitted).
+ */
+function handleGetDashboard(e) {
+  if (DASHBOARD_KEY && (e.parameter.key || '') !== DASHBOARD_KEY) {
+    return jsonResponse({ error: 'Invalid dashboard key' });
+  }
+  var days = parseInt(e.parameter.days, 10);
+  if (!(days > 0 && days <= 365)) days = 7;
+  var cutoff = new Date(Date.now() - days * 86400000).toISOString();
+
+  var vSheet   = getSheet('MR_Visits');
+  var vData    = vSheet.getDataRange().getValues();
+  var vHeaders = vData[0].map(function(h) { return h.toString().toLowerCase().trim(); });
+  var tsIdx    = vHeaders.indexOf('timestamp_iso');
+  var visits   = [];
+  for (var i = 1; i < vData.length; i++) {
+    var ts = (vData[i][tsIdx] || '').toString();
+    if (!ts || ts < cutoff) continue;
+    var row = {};
+    vHeaders.forEach(function(h, idx) { row[h] = vData[i][idx]; });
+    visits.push(row);
+  }
+
+  var eSheet   = getSheet('MR_Employees');
+  var eData    = eSheet.getDataRange().getValues();
+  var eHeaders = eData[0].map(function(h) { return h.toString().toLowerCase().trim(); });
+  var employees = [];
+  for (var j = 1; j < eData.length; j++) {
+    if (!eData[j][0]) continue;
+    var emp = {};
+    eHeaders.forEach(function(h, idx) {
+      if (h === 'pin_hash') return; // never expose credentials
+      emp[h] = eData[j][idx];
+    });
+    employees.push(emp);
+  }
+
+  return jsonResponse({ days: days, visits: visits, employees: employees });
+}
+
 // ── Utilities ─────────────────────────────────────────────────────────────────
+
+// Header rows used to auto-create missing tabs (self-healing setup)
+var TAB_HEADERS = {
+  'MR_Visits':    VISIT_COLUMNS,
+  'MR_Employees': ['mr_id', 'mr_name', 'pin_hash', 'territory', 'reporting_manager', 'joined_date'],
+  'Products':     ['product_id', 'product_name', 'category', 'unit_price_inr']
+};
+
+// A column that uniquely identifies each tab, so we can find your data even
+// if the tab is named "Visits", "Sheet1", or anything else.
+var TAB_SIGNATURE = {
+  'MR_Visits':    'visit_id',
+  'MR_Employees': 'pin_hash',
+  'Products':     'product_id'
+};
 
 function getSheet(name) {
   var ss    = SpreadsheetApp.openById(SHEET_ID);
   var sheet = ss.getSheetByName(name);
-  if (!sheet) throw new Error('Sheet "' + name + '" not found. Check SHEET_ID and tab names.');
+  if (sheet) return sheet;
+
+  // 1) Look for any tab whose header row contains this tab's signature column
+  var signature = TAB_SIGNATURE[name];
+  if (signature) {
+    var all = ss.getSheets();
+    for (var i = 0; i < all.length; i++) {
+      var s = all[i];
+      if (s.getLastRow() < 1 || s.getLastColumn() < 1) continue;
+      var firstRow = s.getRange(1, 1, 1, s.getLastColumn()).getValues()[0]
+        .map(function(h) { return h.toString().toLowerCase().trim(); });
+      if (firstRow.indexOf(signature) >= 0) return s;
+    }
+  }
+
+  // 2) Nothing matches — create the tab fresh with its canonical headers
+  var headers = TAB_HEADERS[name];
+  if (!headers) throw new Error('Sheet "' + name + '" not found and no template exists for it.');
+  sheet = ss.insertSheet(name);
+  sheet.appendRow(headers);
+  sheet.setFrozenRows(1);
   return sheet;
 }
 
